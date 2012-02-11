@@ -218,22 +218,25 @@
 %D This setup command can also setup the color and style for the title, author,
 %D and date.
 
-\def\setupTitle%
-  {\dosingleargument\dosetupTitle}
+\enabletrackers[interfaces.namespaces]
 
-\def\dosetupTitle%[#1]%
-  {\setvariables[simpleslides:title]}% [#1]
+\definenamespace
+  [simpleslidestitle]
+  [
+    \c!type=module,
+    \c!name=simpleslidestitle,
+    setup=list,
+    \c!style=\v!yes,
+    \s!parent=simpleslidetitle,
+  ]
 
-%D A few macros to save some typing
-
-\def\simpleslidestitleparameter%#1
-  {\getvariable{simpleslides:title}}
+\let\setupTitle\setupsimpleslidestitle
 
 \def\simpleslidestitlecomponent#1%
   {\simpleslidestitleparameter{\c!before#1}
       \startalignment[\simpleslidestitleparameter{#1\c!align}]
-        \doattributes{\??vars:simpleslides:title:}{#1\c!style}{#1\c!color}
-          {\getvariable{simpleslides:title}{#1}}
+        \usesimpleslidestitlestyleandcolor{#1\c!style}{#1\c!color}%
+          \simpleslidestitleparameter{#1}%
        \stopalignment
     \simpleslidestitleparameter{\c!after#1}}
 
@@ -248,11 +251,10 @@
    \null
    \simpleslidestitleparameter\c!before
    \startalignment[\simpleslidestitleparameter\c!align]
-   \dostartattributes{\??vars:simpleslides:title:}\c!style\c!color
+   \usesimpleslidestitlestyleandcolor\c!style\c!color
     \simpleslidestitlecomponent\c!title
     \simpleslidestitlecomponent\c!author
     \simpleslidestitlecomponent\c!date
-   \dostopattributes
    \stopalignment
    \simpleslidestitleparameter\c!after
    \page}
@@ -302,16 +304,16 @@
 %D (alignment, size, distance to text, color etc.) vary from module to module,
 %D so this macro is defined in each of the submodules. 
 
-\def\setupSlideTitle
-  {\dosingleargument\dosetupSlideTitle}
-
-\def\dosetupSlideTitle[#1]%
-  {\setvariables[simpleslides:slidetitle]
-                [\c!alternative=\v!normal,\c!width=\textwidth,
-                 \c!height=2\lineheight,#1]}
-
-\def\simpleslidesslidetitleparameter%#1
-  {\getvariable{simpleslides:slidetitle}}
+\definenamespace
+  [SlideTitle]
+  [
+    \c!type=module,
+    \c!name=SlideTitle,
+    \c!command=\v!yes,
+    setup=list,
+    \c!style=\v!yes,
+    \s!parent=SlideTitle,
+  ]
 
 \def\defineSlideTitleAlternative
   {\dodoubleargument\dodefineSlideTitleAlternative}
@@ -320,38 +322,42 @@
   {\setvalue{simpleslides:slidetitle:#1}}
 
 \defineSlideTitleAlternative[\v!normal]#1%
-  {\page[\simpleslidesslidetitleparameter\c!page]%
-   \simpleslidesslidetitleparameter\c!before
-      \startalignment[\simpleslidesslidetitleparameter\c!align]
-        \doattributes{\??vars:simpleslides:slidetitle:}\c!style\c!color{#1}%
+  {\page[\SlideTitleparameter\c!page]%
+   \SlideTitleparameter\c!before
+      \startalignment[\SlideTitleparameter\c!align]
+        \useSlideTitlestyleandcolor\c!style\c!color
+        #1%
        \stopalignment
-    \simpleslidesslidetitleparameter\c!after}
+    \SlideTitleparameter\c!after}
 
 %D The layered alternative is adapted from a sample document that Brooks Moses
 %D published on the wiki:
 
 \defineSlideTitleAlternative[layer]#1%
-  {\page[\simpleslidesslidetitleparameter\c!page]%
-   \simpleslidesslidetitleparameter\c!before
+  {\page[\SlideTitleparameter\c!page]%
+   \SlideTitleparameter\c!before
    \setlayer[simpleslides:layer:slidetitle]%
      {\getvalue{simpleslides:framed}
-        [\c!width=\simpleslidesslidetitleparameter\c!width,
-        \c!height=\simpleslidesslidetitleparameter\c!height,
-         \c!align=\simpleslidesslidetitleparameter\c!align]
-        {\doattributes{\??vars:simpleslides:slidetitle:}\c!style\c!color{#1}}}%
-    \simpleslidesslidetitleparameter\c!after}
+        [\c!width=\SlideTitleparameter\c!width,
+        \c!height=\SlideTitleparameter\c!height,
+         \c!align=\SlideTitleparameter\c!align]
+         {\useSlideTitlestyleandcolor\c!style\c!color
+          #1}}%
+    \SlideTitleparameter\c!after}
 
 \defineSlideTitleAlternative[page]#1%
-  {\page[\simpleslidesslidetitleparameter\c!page]%
-   %\simpleslidesslidetitleparameter\c!before
+  {\page[\SlideTitleparameter\c!page]%
+   %\SlideTitleparameter\c!before
    \setlayer[simpleslides:layer:page]%
-     [\c!preset=\simpleslidesslidetitleparameter\c!preset,
-      \c!hoffset=\simpleslidesslidetitleparameter\c!hoffset,
-      \c!voffset=\simpleslidesslidetitleparameter\c!voffset]
+     [\c!preset=\SlideTitleparameter\c!preset,
+      \c!hoffset=\SlideTitleparameter\c!hoffset,
+      \c!voffset=\SlideTitleparameter\c!voffset]
      {\getvalue{simpleslides:framed:page}
-       [\c!align=\simpleslidesslidetitleparameter\c!align]
-        {\let\\\crlf\doattributes{\??vars:simpleslides:slidetitle:}\c!style\c!color{#1}}}}
-    %\simpleslidesslidetitleparameter\c!after}
+       [\c!align=\SlideTitleparameter\c!align]
+       {\let\\\crlf
+        \useSlideTitlestyleandcolor\c!style\c!color
+          #1}}}
+    %\SlideTitleparameter\c!after}
 
 
 %D Now the main user command
@@ -359,13 +365,15 @@
 \def\SlideTitle{\dowithpargument\doSlideTitle}
 
 \def\doSlideTitle% #1
-  {\getvalue{simpleslides:slidetitle:\simpleslidesslidetitleparameter{alternative}}}
+  {\getvalue{simpleslides:slidetitle:\SlideTitleparameter\c!alternative}}
 
 \setupSlideTitle
   [\c!page=\v!yes,
    \c!style={\switchtobodyfont[\SlideTitleSize]},
    \c!before={\setupPageBackground[horizontal]},
    \c!after={\blank[0.75cm]},
+   \c!width=\textwidth,
+   \c!height=2\lineheight,
    \c!align=\v!middle,
    \c!alternative=\v!normal]
 
