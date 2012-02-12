@@ -75,9 +75,10 @@
 %   [simpleslides-c]
 %   [default]
 
+
 \doiffileelse{s-\currentmoduleparameter\c!style}
- {\ReadFile{s-\currentmoduleparameter\c!style}}
- {\usemodule[simpleslides-s-\currentmoduleparameter\c!style]}
+  {\ReadFile{s-\currentmoduleparameter\c!style}}
+  {\expanded{\usemodule[simpleslides-s-\currentmoduleparameter\c!style]}}
 
 \protect
 
